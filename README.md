@@ -1,71 +1,69 @@
-# IG Chat API 2
+# ig-chat-api2
 
-`ig-chat-api2` keeps the Instagram transport from the original `ig-chat-api`,
-but exposes its functions in the same modular style as `fb-chat-api`.
+An Instagram direct-message client arranged like the function-based `fb-chat-api`
+package. Instagram-specific HTTP and MQTT behavior is kept in the internal class
+and method modules, while each public operation is exposed from its own
+`src/<function>.js` factory.
+
+## Install
+
+```bash
+npm install ig-chat-api2
+```
 
 ## Login
 
-Cookie login accepts the formats already supported by the original package:
+Cookie login is the recommended flow:
 
 ```js
-const login = require('./ig-chat-api2');
+const login = require('ig-chat-api2');
 
-const api = await login({
-  appState: cookies
+login('sessionid=...; ds_user_id=...; csrftoken=...', (err, api) => {
+  if (err) return console.error(err);
+
+  api.listen((listenErr, event) => {
+    if (listenErr) return console.error(listenErr);
+    if (event.type === 'message') {
+      api.sendMessage(`Received: ${event.body}`, event.threadID);
+    }
+  });
 });
 ```
 
-Username/password login is also available:
+Promise-style login and the original `login` named-import style are both
+supported:
 
 ```js
-const api = await login({
-  username: process.env.IG_USERNAME,
-  password: process.env.IG_PASSWORD
-});
+const { login } = require('ig-chat-api2');
+const api = await login(process.env.INSTAGRAM_COOKIES);
+await api.sendMessage('Hello', threadID);
 ```
 
-The callback form is supported:
+## fca-compatible message calls
 
 ```js
-login({ appState: cookies }, (error, api) => {
-  if (error) throw error;
-  api.sendMessage('Hello from Instagram', threadID);
-});
+api.sendMessage('Hello', threadID, callback);
+api.sendMessage({ body: 'Photo', image: 'https://example.com/photo.jpg' }, threadID);
+api.sendMessage('Reply', threadID, callback, messageID);
+api.setMessageReaction('❤️', messageID, callback);
+api.listenMqtt(callback);
 ```
 
-## FCA-style listener
+Message objects support `body`, `attachment`, `image`, `video`, `gif`, `audio`,
+`photo`, and `replyTo`. Methods return promises when no callback is supplied.
 
-```js
-api.listenMqtt((error, event) => {
-  if (error) return console.error(error);
-  if (event.type === 'message') {
-    console.log(event.senderID, event.body);
-  }
-});
+## Layout
+
+```text
+index.js                 login and fca-style function registry
+src/<function>.js        one public function per file
+src/methods/              Instagram protocol method implementations
+src/utils/                HTTP, cookies, validation, logging, and options
+src/mqtt/                 Instagram realtime transport
 ```
 
-`api.listen()` is an alias of `api.listenMqtt()`.
+## Important
 
-## Main API
-
-The following methods are exposed as one-function modules under `src/`:
-
-- `sendMessage`, `sendDirectMessage`, `replyToMessage`, `unsendMessage`
-- `sendPhoto`, `sendVideo`, `sendVoice`, `sendGIF`
-- `sendPhotoFromUrl`, `sendVideoFromUrl`, `sendVoiceFromUrl`
-- `getThreadInfo`, `getThreadList`, `getThreadHistory`, `searchForThread`
-- `deleteThread`, `muteThread`, `unmuteThread`, `setTitle`
-- `addUserToGroup`, `removeUserFromGroup`, `changeNickname`
-- `setMessageReaction`, `removeMessageReaction`
-- `sendTypingIndicator`, `markAsRead`, `markAsReadAll`
-- `getCurrentUserID`, `getUserID`, `getUserInfo`, `searchUsers`
-- `getHealth`, `logout`
-
-Every request method supports both promises and the FCA callback convention.
-
-## Important limitation
-
-Instagram does not expose every Facebook feature. Methods such as Facebook
-polls, post reactions, friend requests, and Facebook-specific MQTT operations
-cannot be made reliable by renaming them. They are intentionally not faked in
-this adapter.
+This client uses private Instagram web/mobile endpoints. Use it only with an
+account you control and expect Instagram to change or rate-limit those
+endpoints.

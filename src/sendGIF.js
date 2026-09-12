@@ -1,6 +1,6 @@
 'use strict';
-const { invoke, optionsCallback } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (threadID, url, options, callback) => {
-  const parsed = optionsCallback(options, callback);
-  return invoke(ctx, ctx.client.sendGIF, [threadID, url, parsed.options], parsed.callback);
+const { clientMethod, optionsAndCallback } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (threadID, url, options, callback) => {
+  const normalized = optionsAndCallback(options, callback);
+  return clientMethod(ctx, 'sendGIF', [threadID, url, normalized.options], normalized.callback);
 };

@@ -1,2 +1,2 @@
 'use strict';
-module.exports = (defaults, api, ctx) => callback => ctx.client.listen(callback);
+module.exports = require('./listen');

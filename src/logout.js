@@ -1,4 +1,4 @@
 'use strict';
-const { invoke } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => callback =>
-  invoke(ctx, ctx.client.logout, [], callback);
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (callback) =>
+  clientMethod(ctx, 'logout', [], callback);

@@ -1,4 +1,4 @@
 'use strict';
-const { invoke } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (messageID, callback) =>
-  invoke(ctx, ctx.client.unsendMessage, [messageID], callback);
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (messageID, callback) =>
+  clientMethod(ctx, 'unsendMessage', [messageID], callback);

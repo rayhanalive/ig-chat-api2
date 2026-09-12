@@ -127,6 +127,13 @@ class InstagramChatAPI extends EventEmitter {
     this.auth.on('sessionRestored', (data) => this.emit('sessionRestored', data));
   }
 
+  _syncAuthenticatedUser(result) {
+    if (!result || !result.success) return;
+    this.userId = result.userID || result.userId || this.userId;
+    this.username = result.username || this.username;
+    this.fullName = result.fullName || this.fullName;
+  }
+
   // ==================== AUTHENTICATION ====================
 
   // Shared MQTT initialisation — call after any successful login
@@ -170,6 +177,7 @@ class InstagramChatAPI extends EventEmitter {
       const result = await this.auth.login(username, password);
 
       if (result.success) {
+        this._syncAuthenticatedUser(result);
         this._initMqtt(result.userID);
 
         if (this.db) {
@@ -191,6 +199,7 @@ class InstagramChatAPI extends EventEmitter {
       const result = await this.auth.verifyTwoFactor(code, twoFactorIdentifier);
 
       if (result.success) {
+        this._syncAuthenticatedUser(result);
         this._initMqtt(result.userID);
       }
 
@@ -207,6 +216,7 @@ class InstagramChatAPI extends EventEmitter {
       const result = await this.auth.loginWithCookies(cookies, options);
 
       if (result.success) {
+        this._syncAuthenticatedUser(result);
         this.logger.verbose('Initializing MQTT with userId:', result.userID);
         this._initMqtt(result.userID);
 
@@ -496,10 +506,6 @@ class InstagramChatAPI extends EventEmitter {
     return this.threadManagement.changeNickname(userID, threadID, nickname, callback);
   }
 
-  removeUserFromGroup(userID, threadID, callback) {
-    return this.threadManagement.removeUser(threadID, userID, callback);
-  }
-
   // ==================== TYPING INDICATOR ====================
 
   sendTypingIndicator(threadID, callback) {
@@ -588,6 +594,11 @@ class InstagramChatAPI extends EventEmitter {
     }
 
     await this.auth.loadSession(sessionData);
+    this._syncAuthenticatedUser({
+      success: this.auth.isAuthenticated(),
+      userId: this.auth.userId,
+      username: this.auth.username
+    });
     
     // Only init MQTT after auth is fully confirmed, avoiding state inconsistencies
     if (this.auth.isAuthenticated()) {

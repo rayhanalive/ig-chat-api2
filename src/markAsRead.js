@@ -1,9 +1,9 @@
 'use strict';
-const { invoke } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (threadID, read = true, callback) => {
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (threadID, read, callback) => {
   if (typeof read === 'function') {
     callback = read;
     read = true;
   }
-  return invoke(ctx, ctx.client.markAsRead, [threadID, read], callback);
+  return clientMethod(ctx, 'markAsRead', [threadID, read === undefined ? true : read], callback);
 };

@@ -1,9 +1,4 @@
 'use strict';
-const { invoke } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (threadID, amount, timestamp, callback) => {
-  if (typeof timestamp === 'function') {
-    callback = timestamp;
-    timestamp = undefined;
-  }
-  return invoke(ctx, ctx.client.getThreadHistory, [threadID, amount, timestamp], callback);
-};
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (threadID, amount, timestamp, callback) =>
+  clientMethod(ctx, 'getThreadHistory', [threadID, amount, timestamp], callback);

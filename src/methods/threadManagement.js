@@ -218,33 +218,6 @@ class ThreadManagement {
     }
   }
 
-  // Remove a participant from a group thread.
-  async removeUser(threadID, userID, callback) {
-    try {
-      const threadValidation = ValidationUtils.validateThreadID(threadID);
-      if (!threadValidation.valid) {
-        throw new Error(threadValidation.error);
-      }
-
-      const userValidation = ValidationUtils.validateUserID(userID);
-      if (!userValidation.valid) {
-        throw new Error(userValidation.error);
-      }
-
-      const response = await this.postThreadAction(
-        `https://www.instagram.com/api/v1/direct_v2/threads/${threadValidation.id}/remove_user/`,
-        { user_id: userValidation.id }
-      );
-
-      const success = response.status === 'ok';
-      if (callback) return callback(null, success);
-      return success;
-    } catch (error) {
-      if (callback) return callback(error);
-      throw error;
-    }
-  }
-
   // Leave thread/group
   async leave(threadID, callback) {
     try {

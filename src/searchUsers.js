@@ -1,6 +1,9 @@
 'use strict';
-const { invoke, optionsCallback } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (query, options, callback) => {
-  const parsed = optionsCallback(options, callback);
-  return invoke(ctx, ctx.client.searchUsers, [query, parsed.options], parsed.callback);
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (query, options, callback) => {
+  if (typeof options === 'function') {
+    callback = options;
+    options = {};
+  }
+  return clientMethod(ctx, 'searchUsers', [query, options || {}], callback);
 };

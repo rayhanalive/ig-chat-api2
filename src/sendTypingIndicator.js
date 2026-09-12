@@ -1,4 +1,4 @@
 'use strict';
-const { invoke } = require('./api-helpers');
-module.exports = (defaults, api, ctx) => (threadID, callback) =>
-  invoke(ctx, ctx.client.sendTypingIndicator, [threadID], callback);
+const { clientMethod } = require('./_helpers');
+module.exports = (_defaultFuncs, _api, ctx) => (threadID, callback) =>
+  clientMethod(ctx, 'sendTypingIndicator', [threadID], callback);
